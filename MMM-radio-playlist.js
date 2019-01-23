@@ -19,7 +19,7 @@ Module.register("MMM-radio-playlist", {
     "berliner-rundfunk": function () {
       let result = null;
       // avoid CORS problems
-      const url = "https://cors-anywhere.herokuapp.com/https://www.berliner-rundfunk.de/node/playlist/1/";
+      const url = "https://cors-anywhere.herokuapp.com/https://www.berliner-rundfunk.de/node/playlist/1/?" + Date.now();
       jQuery
         .get({
           url: url,
