@@ -7,9 +7,12 @@ const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/
 /*
  * Station registry. Each station provides:
  *   name    - display name
+ *   type    - "http" (default) or "websocket"
  *   url     - function returning the URL to fetch (allows cache busting)
  *   headers - optional request headers
- *   parse   - function(responseText) returning an array of { artist, title }
+ *   parse   - http: function(responseText) returning an array of { artist, title }
+ *             websocket: function(message) returning an array of { artist, title },
+ *             or null to ignore the message and wait for the next one
  */
 const stations = {
   "radio-1": {
@@ -29,6 +32,23 @@ const stations = {
         title: $("p.songtitle").first().text().trim()
       };
       return track.title ? [track] : [];
+    }
+  },
+  "berliner-rundfunk": {
+    name: "Berliner Rundfunk",
+    type: "websocket",
+    url: () => "wss://websocket.iamrad.io/v2/4/metadata/channel/5",
+    headers: {
+      "origin": "https://www.berliner-rundfunk.de",
+      "user-agent": USER_AGENT
+    },
+    // The socket pushes the current song as JSON right after connecting, then on every change.
+    parse: (message) => {
+      const data = JSON.parse(message);
+      if (data.type !== "now") {
+        return null;
+      }
+      return data.song ? [{ artist: data.artist, title: data.song }] : [];
     }
   }
 };

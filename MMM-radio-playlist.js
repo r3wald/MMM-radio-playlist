@@ -5,7 +5,7 @@ Module.register("MMM-radio-playlist", {
 
   defaults: {
     updateInterval: 60000,
-    stations: ["radio-1"],
+    stations: ["radio-1", "berliner-rundfunk"],
     header: "Currently playing..."
   },
 

@@ -32,18 +32,51 @@ module.exports = NodeHelper.create({
       return { station: id, error: true, message: "Unknown station" };
     }
     try {
-      const response = await fetch(station.url(), {
-        headers: station.headers,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT)
-      });
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
-      }
-      return { station: station.name, tracks: station.parse(await response.text()) };
+      const tracks = station.type === "websocket"
+        ? await this.receiveWebSocket(station)
+        : await this.fetchHttp(station);
+      return { station: station.name, tracks };
     } catch (error) {
       console.error("[MMM-radio-playlist] " + station.name + ": " + error.message);
       return { station: station.name, error: true, message: error.message };
     }
+  },
+
+  fetchHttp: async function (station) {
+    const response = await fetch(station.url(), {
+      headers: station.headers,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT)
+    });
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
+    }
+    return station.parse(await response.text());
+  },
+
+  // Connects, waits for the first relevant message and disconnects again.
+  receiveWebSocket: function (station) {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(station.url(), { headers: station.headers });
+      const finish = (callback, value) => {
+        clearTimeout(timeout);
+        ws.onmessage = ws.onerror = ws.onclose = null;
+        ws.close();
+        callback(value);
+      };
+      const timeout = setTimeout(() => finish(reject, new Error("Timeout")), REQUEST_TIMEOUT);
+      ws.onmessage = (event) => {
+        try {
+          const tracks = station.parse(String(event.data));
+          if (tracks) {
+            finish(resolve, tracks);
+          }
+        } catch (error) {
+          finish(reject, error);
+        }
+      };
+      ws.onerror = (event) => finish(reject, new Error(event.message || "WebSocket error"));
+      ws.onclose = (event) => finish(reject, new Error("WebSocket closed (" + event.code + ")"));
+    });
   },
 
   stop: function () {
