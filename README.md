@@ -18,7 +18,11 @@ npm install
   position: "top_right",
   config: {
     stations: ["radio-1", "berliner-rundfunk"],   // ids from stations.js
-    updateInterval: 60000    // ms
+    updateInterval: 60000,   // ms
+    animationSpeed: 1000,    // fade duration on change, ms
+    maxTracks: 1,            // tracks per station
+    fixUppercase: true,      // "ROOM WITH A VIEW" -> "Room With A View"
+    header: "Im Radio"
   }
 }
 ```

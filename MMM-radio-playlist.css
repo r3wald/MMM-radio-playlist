@@ -1,5 +1,35 @@
-.MMM-radio-playlist {
-    width: 400px;
-    font-size: 20px;
-    line-height: 24px;
+/* inline-block so the content follows the region's alignment (left/center/right) */
+.MMM-radio-playlist .radio-playlist {
+  display: inline-block;
+  max-width: 360px;
+}
+
+.MMM-radio-playlist .station {
+  margin-bottom: 18px;
+}
+
+.MMM-radio-playlist .station:last-child {
+  margin-bottom: 0;
+}
+
+.MMM-radio-playlist .station-name {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+}
+
+.MMM-radio-playlist .title {
+  line-height: 1.2;
+}
+
+.MMM-radio-playlist .artist,
+.MMM-radio-playlist .status {
+  line-height: 1.3;
+}
+
+.MMM-radio-playlist .title,
+.MMM-radio-playlist .artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
