@@ -4,115 +4,58 @@
 Module.register("MMM-radio-playlist", {
 
   defaults: {
-    animationSpeed: 60000,
+    updateInterval: 60000,
+    stations: ["radio-1"],
     header: "Currently playing..."
   },
 
   start: function () {
-    var self = this;
-    setInterval(function () {
-      self.updateDom();
-    }, this.config.animationSpeed);
+    this.stations = null;
+    this.sendSocketNotification("RADIO_PLAYLIST_START", {
+      identifier: this.identifier,
+      config: this.config
+    });
   },
 
-  stations: {
-    "berliner-rundfunk": function () {
-      let result = null;
-      // avoid CORS problems
-      const url = "https://cors-anywhere.herokuapp.com/https://www.berliner-rundfunk.de/node/playlist/1/?" + Date.now();
-      jQuery
-        .get({
-          url: url,
-          dataType: "xml",
-          async: false
-        })
-        .done((xml) => {
-          const x = jQuery(xml);
-          result = {
-            station: "Berliner Rundfunk",
-            tracks: []
-          };
-          x.find("playlist > song").each(function (i, song) {
-            song = jQuery(song);
-            const r = {
-              artist: song.children("artist").text(),
-              title: song.children("song").text()
-            };
-            result.tracks.push(r);
-          });
-          return result;
-        })
-        .fail((error) => {
-          return {
-            station: "Berliner Rundfunk",
-            error: true,
-            message: error
-          };
-        });
-      return result;
-    },
-    "radio-1": function () {
-      let result = null;
-      jQuery
-        .get({
-          url: "https://www.radioeins.de/include/rad/nowonair/now_on_air.html",
-          async: false
-        })
-        .done((message) => {
-          const x = jQuery("<div>" + message + "</div>");
-          const track = {
-            artist: x.children("p.artist").text(),
-            title: x.children("p.songtitle").text()
-          };
-          result = {
-            station: "Radio 1",
-            tracks: []
-          };
-          if (track.title) {
-            result.tracks.push(track);
-          }
-          return result;
-        })
-        .fail((error) => {
-          return {
-            station: "Radio 1",
-            error: true,
-            message: error
-          };
-        });
-      return result;
+  socketNotificationReceived: function (notification, payload) {
+    if (notification === "RADIO_PLAYLIST_DATA" && payload.identifier === this.identifier) {
+      this.stations = payload.stations;
+      this.updateDom();
     }
   },
 
-  getAllStations: function () {
-    let result = [];
-    result.push(this.stations["berliner-rundfunk"]());
-    result.push(this.stations["radio-1"]());
-    return result;
-  },
-
   getDom: function () {
-    // moment.locale("de");
-    var wrapper = document.createElement("div");
-    const stations = this.getAllStations();
-    let output = "<header class=\"module-header\">Im Radio...</header>";
-    output += "<ul>";
-    jQuery(stations).each(function (i, j) {
-      output += "<li>" + j.station + ": ";
-      jQuery(j.tracks).each(function (k, l) {
-        output += "" + l.artist + " / " + l.title + ", ";
-      });
-      output += "</ul></li>";
-    });
-    output += "</ul>";
-    wrapper.innerHTML = output;
-    return wrapper;
-  },
+    const wrapper = document.createElement("div");
+    const header = document.createElement("header");
+    header.className = "module-header";
+    header.textContent = "Im Radio...";
+    wrapper.appendChild(header);
 
-  getScripts: function () {
-    return [
-      "jquery-2.2.3.min.js"
-    ];
+    if (!this.stations) {
+      const loading = document.createElement("div");
+      loading.className = "dimmed";
+      loading.textContent = "Lade...";
+      wrapper.appendChild(loading);
+      return wrapper;
+    }
+
+    const list = document.createElement("ul");
+    this.stations.forEach((station) => {
+      const item = document.createElement("li");
+      let text;
+      if (station.error) {
+        text = "nicht verfügbar";
+        item.className = "dimmed";
+      } else if (station.tracks.length === 0) {
+        text = "–";
+      } else {
+        text = station.tracks.map((track) => track.artist + " / " + track.title).join(", ");
+      }
+      item.textContent = station.station + ": " + text;
+      list.appendChild(item);
+    });
+    wrapper.appendChild(list);
+    return wrapper;
   },
 
   getStyles: function () {

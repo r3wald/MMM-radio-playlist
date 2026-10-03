@@ -1,0 +1,10 @@
+{
+  "name": "mmm-radio-playlist",
+  "version": "0.2.0",
+  "description": "MagicMirror module: show what's currently playing on the radio",
+  "main": "MMM-radio-playlist.js",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
