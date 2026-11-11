@@ -50,6 +50,20 @@ const stations = {
       }
       return data.song ? [{ artist: data.artist, title: data.song }] : [];
     }
+  },
+  "radio-paradiso": {
+    name: "Radio Paradiso",
+    url: () => "https://radio-paradiso.api.radiosphere.io/channels/3fa6d22c-39b3-4bff-a9df-b74fd9a8211b/current-track?time=" + Date.now(),
+    headers: {
+      "accept": "application/json",
+      "origin": "https://www.paradiso.de",
+      "user-agent": USER_AGENT
+    },
+    // Returns { trackInfo: { title, artistCredits, ... }, lastUpdated }; trackInfo may be missing between songs.
+    parse: (json) => {
+      const track = JSON.parse(json).trackInfo;
+      return track && track.title ? [{ artist: track.artistCredits || "", title: track.title }] : [];
+    }
   }
 };
 
