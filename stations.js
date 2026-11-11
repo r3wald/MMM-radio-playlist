@@ -4,6 +4,15 @@ const cheerio = require("cheerio");
 
 const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36";
 
+// iamrad.io sockets push the current song as JSON right after connecting, then on every change.
+const parseIamradio = (message) => {
+  const data = JSON.parse(message);
+  if (data.type !== "now") {
+    return null;
+  }
+  return data.song ? [{ artist: data.artist, title: data.song }] : [];
+};
+
 /*
  * Station registry. Each station provides:
  *   name    - display name
@@ -42,14 +51,17 @@ const stations = {
       "origin": "https://www.berliner-rundfunk.de",
       "user-agent": USER_AGENT
     },
-    // The socket pushes the current song as JSON right after connecting, then on every change.
-    parse: (message) => {
-      const data = JSON.parse(message);
-      if (data.type !== "now") {
-        return null;
-      }
-      return data.song ? [{ artist: data.artist, title: data.song }] : [];
-    }
+    parse: parseIamradio
+  },
+  "rs2": {
+    name: "rs2",
+    type: "websocket",
+    url: () => "wss://websocket.iamrad.io/v2/4/metadata/channel/7",
+    headers: {
+      "origin": "https://www.rs2.de",
+      "user-agent": USER_AGENT
+    },
+    parse: parseIamradio
   },
   "radio-paradiso": {
     name: "Radio Paradiso",

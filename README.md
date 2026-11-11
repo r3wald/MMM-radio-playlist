@@ -17,7 +17,7 @@ npm install
   module: "MMM-radio-playlist",
   position: "top_right",
   config: {
-    stations: ["radio-1", "berliner-rundfunk", "radio-paradiso"],   // ids from stations.js
+    stations: ["radio-1", "berliner-rundfunk", "rs2", "radio-paradiso"],   // ids from stations.js
     updateInterval: 60000,   // ms
     animationSpeed: 1000,    // fade duration on change, ms
     maxTracks: 1,            // tracks per station

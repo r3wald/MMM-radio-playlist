@@ -6,7 +6,7 @@ Module.register("MMM-radio-playlist", {
   defaults: {
     updateInterval: 60000,
     animationSpeed: 1000,
-    stations: ["radio-1", "berliner-rundfunk", "radio-paradiso"],
+    stations: ["radio-1", "berliner-rundfunk", "rs2", "radio-paradiso"],
     maxTracks: 1,
     fixUppercase: true,
     header: "Im Radio"
